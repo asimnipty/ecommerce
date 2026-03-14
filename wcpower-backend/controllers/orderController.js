@@ -1,4 +1,4 @@
-const Order = require('../models/Order.js');
+const Order = require('../models/Order');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -15,12 +15,16 @@ const addOrderItems = async (req, res) => {
   } = req.body;
 
   if (orderItems && orderItems.length === 0) {
-    res.status(400).json({ message: 'No order items' });
-    return;
+    res.status(400);
+    throw new Error('No order items');
   } else {
     const order = new Order({
-      orderItems,
-      user: req.user._id, // Set by authMiddleware
+      orderItems: orderItems.map((x) => ({
+        ...x,
+        product: x._id,
+        _id: undefined,
+      })),
+      user: req.user._id,
       shippingAddress,
       paymentMethod,
       itemsPrice,
@@ -34,24 +38,4 @@ const addOrderItems = async (req, res) => {
   }
 };
 
-// @desc    Get order by ID
-// @route   GET /api/orders/:id
-// @access  Private
-const getOrderById = async (req, res) => {
-  const order = await Order.findById(req.params.id).populate(
-    'user',
-    'name email'
-  );
-
-  if (order) {
-    res.json(order);
-  } else {
-    res.status(404).json({ message: 'Order not found' });
-  }
-};
-
-// IMPORTANT: These names must be exported exactly like this
-module.exports = {
-  addOrderItems,
-  getOrderById,
-};
+module.exports = { addOrderItems };

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { protect, admin } = require('../middleware/authMiddleware');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
@@ -41,5 +42,6 @@ router.post('/login', authUser);
 // Route for profile: GET /api/users/profile
 // Notice we use 'protect' middleware here to lock this route!
 router.get('/profile', protect, getUserProfile);
+router.route('/').post(registerUser).get(protect, admin, getUsers);
 
 module.exports = router;
